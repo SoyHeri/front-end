@@ -1,5 +1,5 @@
 import React from "react";
-import MenuClient from "../../Components/admin/MenuClient"
+import MenuClient from "../../Components/admin/MenuClient2"
 
 
 function ClientLayout({children}) {

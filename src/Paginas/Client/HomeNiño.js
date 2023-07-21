@@ -1,58 +1,62 @@
-import React from 'react';
-import {dataNiño} from'../../DB/dataNiño'
-//import { Link } from 'react-router-dom';
+import React, { useEffect, useState } from "react";
+import Axios from "../../service/Axios";
 
 function HomeNiño() {
-    return (
-        <section style={{ backgroundColor: '#eee' }}>
-          <div className="container py-5">
-            <div className="row">
-              {dataNiño.map((data, index) => (
-                <div className="col-md-6 col-lg-4 mb-4 mb-md-0" key={index}>
-                  <div className="card">
-                    <div className="d-flex justify-content-between p-3">
-                      <p className="lead mb-0">Oferta del Dia</p>
-                      <div className="bg-info rounded-circle d-flex align-items-center justify-content-center shadow-1-strong" style={{ width: '35px', height: '35px' }}>
-                        <p className="text-white mb-0 small">x{data.cantidad}</p>
-                      </div>
-                    </div>
-                    <img src={data.image} className="card-img-top" alt="Product" />
-                    <div className="card-body">
-                      <div className="d-flex justify-content-between">
-                        <p className="small"><a href="#!" className="text-muted">Productos</a></p>
-                        <p className="small text-danger"><s>${data.precio + 100}</s></p>
-                      </div>
-    
-                      <div className="d-flex justify-content-between mb-3">
-                        <h5 className="mb-0">{data.nombre}</h5>
-                        <h5 className="text-dark mb-0">${data.precio}</h5>
-                      </div>
-    
-                      <div className="d-flex justify-content-between mb-2">
-                        <p className="text-muted mb-0">Existencia: <span className="fw-bold">{data.cantidad}</span></p>
-                        <div className="ms-auto text-warning">
-                          <i className="bi bi-star"></i>
-                          <i className="bi bi-star"></i>
-                          <i className="bi bi-star"></i>
-                          <i className="bi bi-star"></i>
-                          <i className="bi bi-star"></i>
-                          <p className="text-end">
-                        <button
-                        type="button"
-                        class="btn btn-outline-success inline-block">
-                        <i class="bi bi-cart-dash"></i>
-                        </button>
-                      </p>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
+  const [datos, setDatos] = useState([]);
+  const urlImages = "http://127.0.0.1:4000/images/";
+
+  const consultarDatos = async () => {
+    const consultar = await Axios.get("/producto/consultarProducto");
+    setDatos(consultar.data);
+    console.log(consultar);
+  };
+
+  useEffect(() => {
+    consultarDatos();
+  }, []);
+
+  // Filtrar los productos por la categoría
+  const productosNiño = datos.filter(
+    (producto) => producto.categoria === "Niño"
+  );
+
+  return (
+    <section style={{ backgroundColor: "#eee" }}>
+      <div className="container py-5">
+        <div className="row row-cols-1 row-cols-md-4 row-cols-g-4">
+          {productosNiño.map((ropaNiño) => (
+            <div className="col p-3" key={ropaNiño._id}>
+              <div className="card h-100">
+                <img
+                  src={urlImages + ropaNiño.image.filename}
+                  className="card-img-top"
+                  alt="..."
+                />
+                <div className="card-body">
+                  <h5 className="card-title">{ropaNiño.nombre}</h5>
+                  <p className="card-text">{ropaNiño.descripcion}</p>
                 </div>
-              ))}
+                <div
+                  className="card-footer bg-transparent border-success"
+                  align="right"
+                >
+                  <label htmlFor="floatingPlaintextInput">
+                    Costo: ${ropaNiño.precio}&nbsp;
+                  </label>
+                  <label htmlFor="floatingPlaintextInput">
+                    Cantidad: {ropaNiño.cantidad}&nbsp;
+                  </label>
+                  <button type="button" className="btn btn-outline-success">
+                    <i className="bi bi-cart4"></i>
+                  </button>
+                </div>
+              </div>
             </div>
-          </div>
-        </section>
-      );
-    }
-    
-    export default HomeNiño;
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+export default HomeNiño;

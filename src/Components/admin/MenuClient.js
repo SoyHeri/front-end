@@ -1,12 +1,11 @@
 import {Link} from "react-router-dom";
+import '../admin/MenuClient.css';
 
 function MenuClient() {
   return (
-    <nav className="navbar navbar-expand-lg bg-body-tertiary">
-      <div className="container-fluid">
-        <Link className="navbar-brand" to="/">
-          <img src="img/logo1.png" alt="..." width="170" height="27"/>
-        </Link>
+    <nav className="navbar navbar-expand-lg ">
+      <div className="animation start-home container-fluid">
+        
         <button
           className="navbar-toggler"
           type="button"

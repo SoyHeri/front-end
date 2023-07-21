@@ -1,58 +1,62 @@
-import React from 'react';
-import {dataNiña} from'../../DB/dataNiña'
-//import { Link } from 'react-router-dom';
+import React, { useEffect, useState } from "react";
+import Axios from "../../service/Axios";
 
 function HomeNiña() {
-    return (
-        <section style={{ backgroundColor: '#eee' }}>
-          <div className="container py-5">
-            <div className="row">
-              {dataNiña.map((data, index) => (
-                <div className="col-md-6 col-lg-4 mb-4 mb-md-0" key={index}>
-                  <div className="card">
-                    <div className="d-flex justify-content-between p-3">
-                      <p className="lead mb-0">Oferta del Dia</p>
-                      <div className="bg-info rounded-circle d-flex align-items-center justify-content-center shadow-1-strong" style={{ width: '35px', height: '35px' }}>
-                        <p className="text-white mb-0 small">x{data.cantidad}</p>
-                      </div>
-                    </div>
-                    <img src={data.image} className="card-img-top" alt="Product" />
-                    <div className="card-body">
-                      <div className="d-flex justify-content-between">
-                        <p className="small"><a href="#!" className="text-muted">Productos</a></p>
-                        <p className="small text-danger"><s>${data.precio + 100}</s></p>
-                      </div>
-    
-                      <div className="d-flex justify-content-between mb-3">
-                        <h5 className="mb-0">{data.nombre}</h5>
-                        <h5 className="text-dark mb-0">${data.precio}</h5>
-                      </div>
-    
-                      <div className="d-flex justify-content-between mb-2">
-                        <p className="text-muted mb-0">Existencia: <span className="fw-bold">{data.cantidad}</span></p>
-                        <div className="ms-auto text-warning">
-                          <i className="bi bi-star"></i>
-                          <i className="bi bi-star"></i>
-                          <i className="bi bi-star"></i>
-                          <i className="bi bi-star"></i>
-                          <i className="bi bi-star"></i>
-                          <p className="text-end">
-                        <button
-                        type="button"
-                        class="btn btn-outline-success inline-block">
-                        <i class="bi bi-cart-dash"></i>
-                        </button>
-                        </p>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
+  const [datos, setDatos] = useState([]);
+  const urlImages = "http://127.0.0.1:4000/images/";
+
+  const consultarDatos = async () => {
+    const consultar = await Axios.get("/producto/consultarProducto");
+    setDatos(consultar.data);
+    console.log(consultar);
+  };
+
+  useEffect(() => {
+    consultarDatos();
+  }, []);
+
+  // Filtrar los productos por la categoría
+  const productosNiña = datos.filter(
+    (producto) => producto.categoria === "Niña"
+  );
+
+  return (
+    <section style={{ backgroundColor: "#eee" }}>
+      <div className="container py-5">
+        <div className="row row-cols-1 row-cols-md-4 row-cols-g-4">
+          {productosNiña.map((ropaNiña) => (
+            <div className="col p-3" key={ropaNiña._id}>
+              <div className="card h-100">
+                <img
+                  src={urlImages + ropaNiña.image.filename}
+                  className="card-img-top"
+                  alt="..."
+                />
+                <div className="card-body">
+                  <h5 className="card-title">{ropaNiña.nombre}</h5>
+                  <p className="card-text">{ropaNiña.descripcion}</p>
                 </div>
-              ))}
+                <div
+                  className="card-footer bg-transparent border-success"
+                  align="right"
+                >
+                  <label htmlFor="floatingPlaintextInput">
+                    Costo: ${ropaNiña.precio}&nbsp;
+                  </label>
+                  <label htmlFor="floatingPlaintextInput">
+                    Cantidad: {ropaNiña.cantidad}&nbsp;
+                  </label>
+                  <button type="button" className="btn btn-outline-success">
+                    <i className="bi bi-cart4"></i>
+                  </button>
+                </div>
+              </div>
             </div>
-          </div>
-        </section>
-      );
-    }
-    
-    export default HomeNiña;
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+export default HomeNiña;

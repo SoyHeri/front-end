@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import Axios from "../service/Axios";
+import Axios from "../../service/Axios";
 import { useNavigate, useParams } from "react-router-dom";
 
 function Editar() {
@@ -14,10 +14,8 @@ function Editar() {
     image: "",
   };
 
-  
-
   const [saveDatos, setSaveDatos] = useState(variables);
- 
+  const [previewImage, setPreviewImage] = useState(null); // Estado para la vista previa de la imagen
 
   const params = useParams();
   const navigate = useNavigate();
@@ -28,17 +26,33 @@ function Editar() {
     console.log(editar.data);
   };
 
+  useEffect(() => {
+    buscarOne(params.id);
+  }, [params.id]);
+
   const onChange = (e) => {
-    const { name, value } = e.target;
+    const { name, value, type } = e.target;
+
+    // Si el evento es causado por un cambio en el campo de imagen, actualizamos la vista previa.
+    if (type === "file" && e.target.files[0]) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setPreviewImage(reader.result);
+      };
+      reader.readAsDataURL(e.target.files[0]);
+    }
+
     setSaveDatos({ ...saveDatos, [name]: value });
-    console.log(e.target)
   };
 
   const editarForm = async (e) => {
     e.preventDefault();
-    
+
     try {
-      await Axios.patch(`producto/updateProducto/${params.id}`, saveDatos);
+      const form = document.getElementById("formedit");
+      const formData = new FormData(form);
+
+      await Axios.patch(`producto/updateProducto/${params.id}`, formData);
       console.log("Datos actualizados correctamente");
       navigate(`/product`);
     } catch (error) {
@@ -46,19 +60,16 @@ function Editar() {
     }
   };
 
-  useEffect(() => {
-    buscarOne(params.id);
-  }, [params.id]);
-
   return (
-    <div>
+    <div className="container mt-4">
+      <h2>Editar Producto</h2>
       <form
         className="row g-3"
         onSubmit={editarForm}
         id="formedit"
         encType="multipart/form-data"
       >
-        <div className="col-md-12">
+        <div className="col-md-6">
           <label htmlFor="validationDefault01" className="form-label">
             Nombre del producto
           </label>
@@ -73,22 +84,26 @@ function Editar() {
             required
           />
         </div>
-        <div className="col-md-12">
+        <div className="col-md-6">
           <label htmlFor="validationDefault02" className="form-label">
             Categoría
           </label>
-          <input
-            type="text"
-            className="form-control"
-            id="validationDefault02"
-            placeholder="Categoría"
+          <select
+            className="form-select"
+            aria-label="Seleccione una Categoría"
             name="categoria"
             value={saveDatos.categoria}
             onChange={onChange}
             required
-          />
+          >
+            <option value="" disabled>Seleccione una Categoría</option>
+            <option value="Hombre">Hombre</option>
+            <option value="Mujer">Mujer</option>
+            <option value="Niño">Niño</option>
+            <option value="Niña">Niña</option>
+          </select>
         </div>
-        <div className="col-md-12">
+        <div className="col-md-6">
           <label htmlFor="validationDefault03" className="form-label">
             Talla
           </label>
@@ -103,7 +118,7 @@ function Editar() {
             required
           />
         </div>
-        <div className="col-md-12">
+        <div className="col-md-6">
           <label htmlFor="validationDefault04" className="form-label">
             Precio
           </label>
@@ -118,7 +133,7 @@ function Editar() {
             required
           />
         </div>
-        <div className="col-md-12">
+        <div className="col-md-6">
           <label htmlFor="validationDefault05" className="form-label">
             Cantidad
           </label>
@@ -133,7 +148,7 @@ function Editar() {
             required
           />
         </div>
-        <div className="col-md-12">
+        <div className="col-md-6">
           <label htmlFor="validationDefault06" className="form-label">
             Descripción
           </label>
@@ -147,18 +162,33 @@ function Editar() {
             required
           />
         </div>
-        <div className="col-md-12">
+        <div className="col-md-6">
+          <label className="form-label">Imagen Actual</label>
+          <img
+            src={
+              previewImage || // Muestra la vista previa si está disponible
+              "http://localhost:4000/images/" + saveDatos.image.filename
+            }
+            className="img-thumbnail"
+            style={{ width: 100, height: 100 }}
+            alt="..."
+          />
+        </div>
+        
+        <div className="col-md-6">
+          <label htmlFor="image" className="form-label">
+            Subir Nueva Imagen
+          </label>
           <input
             type="file"
             className="form-control"
-            id="validationDefault07"
-            placeholder="Ingresa la imagen"
+            id="image"
             name="image"
-            value={saveDatos.image}
             onChange={onChange}
             required
           />
         </div>
+
         <div className="col-12">
           <button className="btn btn-primary" type="submit">
             Editar

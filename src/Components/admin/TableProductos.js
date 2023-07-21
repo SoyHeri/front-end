@@ -1,7 +1,10 @@
 import React, { useState, useEffect } from "react";
-
-import Axios from "../service/Axios";
+import { toast  } from "react-toastify";
+import Axios from "../../service/Axios";
 import { useNavigate } from "react-router-dom";
+import "./Botones/Editar.css";
+import "./Botones/Delete.css";
+import "./TableProductos.css";
 
 
 
@@ -21,6 +24,12 @@ function TableProductos() {
 
   const [saveDatos, setSaveDatos] = useState(datos);
   const [almacenarDatos, setAlmacenarDatos] = useState([]);
+  const [show, setShow] = useState(false);
+  const [carga, setCarga]=useState(0);
+  const [loading, setLoading]=useState(false);
+  const reiniciarBarraDeProgreso = () => {
+    setCarga(0); // Suponiendo que `carga` es el estado que controla el progreso de la barra.
+  };
 
   const navigate = useNavigate();
 
@@ -31,26 +40,65 @@ function TableProductos() {
 
   const GuardarDatos = async (e) => {
     e.preventDefault();
+
+  setLoading(true);
     const formu = document.getElementById("form-producto");
     const formData = new FormData(formu);
     //const data = Object.fromEntries(formData);
-    await Axios.post("producto/guardarProducto", formData).then(() => {
-      console.log("Registros guardados correctamente");
+
+    await Axios.post("producto/guardarProducto", formData, {
+      headers:{
+        'Content-Type': 'multipart/form-data'
+      },
+      onUploadProgress(progressEvent){
+        const {loaded,total}=progressEvent;
+        const porcentaje=parseInt((loaded*100)/total);
+        setCarga(porcentaje);
+       // console.log(porcentaje);
+      }
+    }).then(() => {
+      toast.success("Datos guardados correctamente!!", {
+        position: "top-center",
+        autoClose: 2000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+        theme: "colored",
+        });
     });
+
     console.log();
     consultarInformacion();
     setSaveDatos(datos);
   };
 
-  const consultarInformacion=async()=>{
-    const consultar=await Axios.get("producto/consultarProducto");
+  const consultarInformacion = async () => {
+    const consultar = await Axios.get("producto/consultarProducto");
     setAlmacenarDatos(consultar.data);
-    //console.log(consultar.data);
-  }
+    console.log(consultar);
+  };
 
   const Eliminar = async(id) => {
-    const eliminar= await Axios.delete(`producto/eliminarProducto/${id}`);
-    console.log("Los datos se eliminaron correctamente: "+eliminar);
+    
+    if (window.confirm("Realmente esta seguro de eliminar el producto? ")){
+      const eliminar= await Axios.delete(`producto/eliminarProducto/${id}`);
+      console.log("Los datos se eliminaron correctamente: "+eliminar);
+
+      toast.success('Datos Eliminados PaPu!!!!', {
+        position: "top-right",
+        autoClose: 5000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+        theme: "dark",
+        });
+        
+    }
+    
     consultarInformacion();
   };
 
@@ -60,45 +108,54 @@ function TableProductos() {
   };
 
 
-  useEffect(()=>{
+  useEffect(() => {
     consultarInformacion();
-  },[]);
+  }, []);
 
 
-  const Editar = () => {
-    alert("Se va a editar"); 
+  const abrirModal = () => {
+
+    setShow({...!show});
   };
+
 
   const listaProducto = almacenarDatos.map((producto, index) => {
     return (
       <tbody>
          <tr className="text-center">
           <th scope="row">{index + 1}</th>
+          <td>
+            <img
+              src={urlImages + producto.image.filename}
+              className="img-thumbnail"
+              alt="..."
+              style={{width:"50px"}}
+            />
+          </td>
           <td>{producto.nombre}</td>
           <td>$&nbsp;{producto.precio}.00</td>
           <td>&nbsp;{producto.cantidad}</td>
+          <td>&nbsp;{producto.categoria}</td>
           <td>&nbsp;{producto.descripcion}</td>
-          <td>
-            <img
-              src={urlImages + producto.filename}
-              className="img-thumbnail"
-              alt="..."
-              style={{width:"100px"}}
-            />
-          </td>
-          <td>
-            <button
-              className="btn btn-info"
-              onClick={() => navigate(`/product/editar/${producto._id}`)}
-            >
-              <i className="bi bi-pencil"></i>
-            </button>
+          
+          <td >
+          <button className='Editar' onClick={() => navigate(`/product/editar/${producto._id}`)}>
+            <svg className='Icon' viewBox='0 0 448 512'><path d='m410.3 231l11.3-11.3l-33.9-33.9l-62.1-62.1l-33.9-33.9l-11.3 
+            11.3l-22.6 22.6L58.6 322.9c-10.4 10.4-18 23.3-22.2 37.4L1 480.7c-2.5 8.4-.2 17.5 6.1 23.7s15.3 8.5 23.7 6.1l120.3-35.4c14.1-4.2 
+            27-11.8 37.4-22.2l199.2-199.2l22.6-22.7zM160 399.4l-9.1 22.7c-4 3.1-8.5 5.4-13.3 6.9l-78.2 23l23-78.1c1.4-4.9 3.8-9.4 
+            6.9-13.3l22.7-9.1v32c0 8.8 7.2 16 16 16h32zM362.7 18.7l-14.4 14.5l-22.6 22.6l-11.4 11.3l33.9 33.9l62.1 62.1l33.9 
+            33.9l11.3-11.3l22.6-22.6l14.5-14.5c25-25 25-65.5 0-90.5l-39.3-39.4c-25-25-65.5-25-90.5 0zm-47.4 168l-144 144c-6.2 6.2-16.4 
+            6.2-22.6 0s-6.2-16.4 0-22.6l144-144c6.2-6.2 16.4-6.2 22.6 0s6.2 16.4 0 22.6z'></path></svg>
+        </button>
           </td>
 
+
           <td>
-            <button className="btn btn-danger" onClick={()=>Eliminar(producto._id)}>
-              <i className="bi bi-trash"></i>
-            </button>
+          <button className='button' onClick={()=>Eliminar(producto._id)}>
+            <svg className='svgIcon' viewBox='0 0 448 512'><path d='M135.2 17.7L128 32H32C14.3 32 0 46.3 0 64s14.3 32 32 32h384c17.7 0 
+            32-14.3 32-32s-14.3-32-32-32h-96l-7.2-14.3C307.4 6.8 296.3 0 284.2 0H163.8c-12.1 0-23.2 6.8-28.6 17.7zM416 128H32l21.2 
+            339c1.6 25.3 22.6 45 47.9 45h245.8c25.3 0 46.3-19.7 47.9-45L416 128z'></path></svg>
+        </button>
           </td>
         </tr>
       </tbody>
@@ -122,11 +179,12 @@ function TableProductos() {
         <thead>
           <tr className="text-center">
             <th scope="col">#</th>
+            <th scope="col">Imagen</th>
             <th scope="col">Nombre</th>
             <th scope="col">Precio</th>
             <th scope="col">Cantidad</th>
-            <th scope="col">descripcion</th>
-            <th scope="col">imagen</th>
+            <th scope="col">Categoría</th>
+            <th scope="col">Descripcion</th>           
             <th scope="col">Editar</th>
             <th scope="col">Eliminar</th>
           </tr>
@@ -176,21 +234,20 @@ function TableProductos() {
                     required
                   />
                 </div>
-                <div className="col-md-12">
-                  <label for="validationDefault01" className="form-label">
-                    Categoria
-                  </label>
-                  <input
-                    type="text"
-                    className="form-control"
-                    id="validationDefault01"
-                    placeholder="Categoria"
-                    name="categoria"
-                    value={saveDatos.categoria}
-                    onChange={onChange}
-                    required
-                  />
-                </div>
+                <select
+                  className="form-select form-select-sm"
+                  aria-label=".form-select-sm example"
+                  name="categoria"
+                  value={saveDatos.categoria}
+                  onChange={onChange}
+                >
+                  <option value="" disabled selected>Seleccione una Categoría</option>
+                  <option value="Hombre">Hombre</option>
+                  <option value="Mujer">Mujer</option>
+                  <option value="Niño">Niño</option>
+                  <option value="Niña">Niña</option>
+                </select>
+
                 <div className="col-md-12">
                   <label for="validationDefault01" className="form-label">
                     Talla
@@ -264,6 +321,15 @@ function TableProductos() {
                     Guardar
                   </button>
                 </div>
+                {
+                  loading && (
+                  <div className="col-12">
+                <div class="progress" role="progressbar" aria-label="Example with label" aria-valuenow="25" aria-valuemin="0" aria-valuemax="100">
+                <div class="progress-bar" style={{width:`${carga}%`}}></div>
+                </div>
+                </div>
+              )
+            }               
               </form>
             </div>
           </div>
